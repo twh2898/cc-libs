@@ -31,8 +31,6 @@
         "expect_ne",
         "expect_float_eq",
         "expect_float_ne",
-        "test_results",
-        "store_test_pass",
-        "store_test_fail"
+        "store_check_fail"
     ]
 }
