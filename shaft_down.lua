@@ -48,7 +48,7 @@ local function place()
 end
 
 local function place_all_sides()
-    for _ = 1,4 do
+    for _ = 1, 4 do
         place()
         tmc:right()
     end
