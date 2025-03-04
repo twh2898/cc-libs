@@ -65,7 +65,7 @@ local function timestamp()
 end
 
 ---Get a string with filename and line of the calling code
----@return string
+---@return string, table traceback name and debug info
 local function traceback()
     local info = debug.getinfo(3, 'Slfn')
     for _, check in ipairs({ 'trace', 'debug', 'info', 'warn', 'warning', 'error', 'fatal' }) do
@@ -74,7 +74,8 @@ local function traceback()
             break
         end
     end
-    return info.source .. ':' .. info.currentline
+    local traceback_str = info.source .. ':' .. info.currentline
+    return traceback_str, info
 end
 
 ---@class Logger
@@ -174,16 +175,36 @@ function M:log(level, ...)
         end
 
         if M._file then
-            local long_msg = '['
-                .. timestamp()
-                .. '] ['
-                .. self.subsystem
-                .. '] ['
-                .. traceback()
-                .. '] ['
-                .. level_name(level)
-                .. '] '
-                .. get_msg()
+            local long_msg
+            if self.machine_log or M.machine_log then
+                local _, info = traceback()
+                long_msg = json.encode({
+                    timestamp = timestamp(),
+                    subsystem = self.subsystem,
+                    location = {
+                        source = info.source,
+                        short_src = info.short_src,
+                        linedefined = info.linedefined,
+                        name = info.name,
+                        namewhat = info.namewhat,
+                        currentline = info.currentline,
+                    },
+                    level = level,
+                    level_name = level_name(level),
+                    msg = get_msg(),
+                })
+            else
+                long_msg = '['
+                    .. timestamp()
+                    .. '] ['
+                    .. self.subsystem
+                    .. '] ['
+                    .. traceback()
+                    .. '] ['
+                    .. level_name(level)
+                    .. '] '
+                    .. get_msg()
+            end
             M._file:write(long_msg .. '\n')
             M._file:flush()
         end
