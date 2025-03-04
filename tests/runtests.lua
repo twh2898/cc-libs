@@ -56,16 +56,16 @@ local function run_test_case(fn, case_name, test_name)
             check = check_name,
             msg = msg,
             data = data,
-            traceback = debug.traceback(check_name, 2)
         })
     end
 
     local status, err = xpcall(fn, debug.traceback)
     if not status then
-        if err.type ~= 'test assert' then
-            err.msg = 'Error during test'
-            err.type = 'system error'
-            store_check_fail(err)
+        if type(err) == 'string' then
+            store_check_fail({
+                msg = err,
+                type = 'system error',
+            })
         end
     end
 
@@ -121,7 +121,9 @@ local function print_test_trace(test_module, cases)
             end
         else
             for _, check in ipairs(case.failed_checks) do
-                print(check.file .. ':' .. check.line)
+                if check.data.type ~= 'system error' then
+                    print(check.file .. ':' .. check.line)
+                end
                 print(check.msg)
             end
             if disable_color then
