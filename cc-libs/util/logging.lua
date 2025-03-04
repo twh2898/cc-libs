@@ -1,5 +1,7 @@
 ---@meta ccl_logging
 
+local json = require 'cc-libs.util.json'
+
 ---@enum LogLevel
 local Level = {
     DISABLED = nil,
@@ -79,6 +81,7 @@ end
 ---@field subsystem string name of the subsystem
 ---@field level number|LogLevel minimum log level for terminal logging
 ---@field file_level number|LogLevel minimum log level for file logging
+---@field machine_log boolean write log file in a machine readable format (json)
 ---@field file? string active log file path if _file is not nil
 ---@field _file? file*
 ---@field _subsystems { [string]: Logger }
@@ -95,12 +98,14 @@ local M = {
 ---@param subsystem string the subsystem name
 ---@param level? number|LogLevel the print log level
 ---@param file_level? number|LogLevel the file log level
+---@param machine_log? boolean change log file to machine readable format
 ---@return Logger
-function M:new(subsystem, level, file_level)
+function M:new(subsystem, level, file_level, machine_log)
     local o = {
         subsystem = subsystem or 'undefined',
         level = level,
         file_level = file_level,
+        machine_log = machine_log or false,
     }
     setmetatable(o, self)
     self.__index = self
