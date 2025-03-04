@@ -2,10 +2,11 @@ package.path = '../?.lua;' .. package.path
 
 local disable_color = os.getenv('DISABLE_COLOR_TEST')
 local test_file_prefix = 'test_'
-local test_function_prefix = 'test_'
 
 require 'asserts'
 require 'mock'
+
+local json = require 'cc-libs.util.json'
 
 local function save_g()
     local copy = {}
@@ -39,13 +40,56 @@ local function reset_packages(old_packages)
     end
 end
 
+local function traceback()
+    local level = 3
+    local trace = {}
+    while true do
+        local info = debug.getinfo(level, "Sln")
+        if not info then break end
+        table.insert(trace, info)
+        level = level + 1
+    end
+    return trace
+end
+
 local function find_run_tests(test, test_module)
     print('Running tests from module ' .. test_module)
     local n_run = 0
     local n_pass = 0
+    test_results = {}
+
+    local active_test
+
+    function store_test_pass(result)
+        local check_name = debug.getinfo(2, 'n').name
+        table.insert(test_results, {
+            traceback_full = traceback(),
+            traceback_str = debug.traceback(check_name, 3),
+            module = test_module,
+            test = active_test,
+            check = check_name,
+            status = "pass",
+            data = result,
+        })
+    end
+
+    function store_test_fail(result)
+        local check_name = debug.getinfo(2, 'n').name
+        table.insert(test_results, {
+            traceback_full = traceback(),
+            traceback_str = debug.traceback(check_name, 3),
+            module = test_module,
+            test = active_test,
+            check = check_name,
+            status = "fail",
+            data = result,
+        })
+    end
+
     for name, fn in pairs(test) do
         if name ~= 'setup' and name ~= 'teardown' then
             local test_name = test_module .. '::' .. name
+            active_test = name
             if disable_color then
                 print('[RUN    ] ' .. test_name)
             else
@@ -65,7 +109,12 @@ local function find_run_tests(test, test_module)
             else
                 if err.msg then
                     print(err.msg)
+                    table.insert(test_results, err)
                 else
+                    store_test_fail({
+                        msg = 'Error during test',
+                        error = err,
+                    })
                     print(err)
                 end
                 if disable_color then
@@ -81,6 +130,8 @@ local function find_run_tests(test, test_module)
         end
     end
     print('Finished ' .. test_module .. ' ' .. n_pass .. '/' .. n_run .. ' passed')
+    print()
+    print(json.encode(test_results))
     print()
     return n_run == n_pass
 end
