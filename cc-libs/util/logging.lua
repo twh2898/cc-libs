@@ -8,7 +8,7 @@ local Level = {
     INFO = 2,
     WARNING = 3,
     ERROR = 4,
-    fatal = 5,
+    FATAL = 5,
 }
 
 ---Get the string name of a level
@@ -28,10 +28,30 @@ local function level_name(level)
         return 'warning'
     elseif level == Level.ERROR then
         return 'error'
-    elseif level == Level.fatal then
+    elseif level == Level.FATAL then
         return 'fatal'
     else
         return 'custom:' .. tostring(level)
+    end
+end
+
+---Get the level from it's string name
+---@param name string name of the level
+---@return LogLevel? level number
+local function name_from_name(name)
+    assert(name >= 0, 'name must be a positive number')
+    if name == 'trace' or name == 'TRACE' then
+        return Level.TRACE
+    elseif name == 'debug' or name == 'DEBUG' then
+        return Level.DEBUG
+    elseif name == 'info' or name == 'INFO' then
+        return Level.INFO
+    elseif name == 'warning' or name == 'WARNING' then
+        return Level.WARNING
+    elseif name == 'error' or name == 'ERROR' then
+        return Level.ERROR
+    elseif name == 'fatal' or name == 'FATAL' then
+        return Level.FATAL
     end
 end
 
@@ -65,6 +85,7 @@ end
 local M = {
     Level = Level,
     level_name = level_name,
+    name_from_name = name_from_name,
     file = nil,
     _file = nil,
     _subsystems = {},
@@ -203,7 +224,7 @@ end
 ---Write a log message with ERROR level and call error()
 ---@param ... any message
 function M:fatal(...)
-    self:log(Level.fatal, ...)
+    self:log(Level.FATAL, ...)
     error(table.concat({ ... }, ''))
 end
 
