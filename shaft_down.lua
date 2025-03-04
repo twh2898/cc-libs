@@ -2,6 +2,7 @@ local logging = require 'cc-libs.util.logging'
 logging.file = 'logs/shaft_down.log'
 logging.level = logging.Level.INFO
 logging.file_level = logging.Level.TRACE
+logging.machine_log = true
 local log = logging.get_logger('main')
 
 ---@module 'ccl_motion'
