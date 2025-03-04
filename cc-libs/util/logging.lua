@@ -76,9 +76,9 @@ local function traceback()
 end
 
 ---@class Logger
----@field subsystem string
----@field level number|LogLevel
----@field file_level number|LogLevel
+---@field subsystem string name of the subsystem
+---@field level number|LogLevel minimum log level for terminal logging
+---@field file_level number|LogLevel minimum log level for file logging
 ---@field file? string active log file path if _file is not nil
 ---@field _file? file*
 ---@field _subsystems { [string]: Logger }
