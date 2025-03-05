@@ -41,7 +41,6 @@ end
 ---@param name string name of the level
 ---@return LogLevel? level number
 local function name_from_name(name)
-    assert(name >= 0, 'name must be a positive number')
     if name == 'trace' or name == 'TRACE' then
         return Level.TRACE
     elseif name == 'debug' or name == 'DEBUG' then
