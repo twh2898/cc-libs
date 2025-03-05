@@ -104,7 +104,7 @@ local function print_test_trace(test_module, cases)
     local n_pass = 0
 
     for _, case in pairs(cases) do
-        if case.status == "pass" then
+        if case.status == 'pass' then
             n_pass = n_pass + 1
         end
         local test_name = test_module .. '::' .. case.name

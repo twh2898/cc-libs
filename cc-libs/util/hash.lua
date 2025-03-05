@@ -10,7 +10,7 @@ local function hash(str)
 
     local h = 5381
 
-    for c in str:gmatch "." do
+    for c in str:gmatch '.' do
         h = ((h << 5) + h) + string.byte(c)
     end
 
