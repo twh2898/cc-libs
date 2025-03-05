@@ -115,10 +115,10 @@ function ConsoleHandler:new(level)
     return o
 end
 
-function ConsoleHandler:message(logger, message, debug_info)
-end
+-- function ConsoleHandler:message(logger, message, debug_info)
+-- end
 
-local c = ConsoleHandler(0)
+local c = ConsoleHandler:new(0)
 
 c:message()
 
