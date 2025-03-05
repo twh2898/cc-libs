@@ -1,60 +1,6 @@
 ---@meta ccl_logging
 
-local json = require 'cc-libs.util.json'
-
----@enum LogLevel
-local Level = {
-    DISABLED = nil,
-    TRACE = 0,
-    DEBUG = 1,
-    INFO = 2,
-    WARNING = 3,
-    ERROR = 4,
-    FATAL = 5,
-}
-
----Get the string name of a level
----@param level number|LogLevel level or level number
----@return string
-local function level_name(level)
-    assert(level >= 0, 'level must be a positive number')
-    if level == nil then
-        return 'disabled'
-    elseif level == Level.TRACE then
-        return 'trace'
-    elseif level == Level.DEBUG then
-        return 'debug'
-    elseif level == Level.INFO then
-        return 'info'
-    elseif level == Level.WARNING then
-        return 'warning'
-    elseif level == Level.ERROR then
-        return 'error'
-    elseif level == Level.FATAL then
-        return 'fatal'
-    else
-        return 'custom:' .. tostring(level)
-    end
-end
-
----Get the level from it's string name
----@param name string name of the level
----@return LogLevel? level number
-local function name_from_name(name)
-    if name == 'trace' or name == 'TRACE' then
-        return Level.TRACE
-    elseif name == 'debug' or name == 'DEBUG' then
-        return Level.DEBUG
-    elseif name == 'info' or name == 'INFO' then
-        return Level.INFO
-    elseif name == 'warning' or name == 'WARNING' then
-        return Level.WARNING
-    elseif name == 'error' or name == 'ERROR' then
-        return Level.ERROR
-    elseif name == 'fatal' or name == 'FATAL' then
-        return Level.FATAL
-    end
-end
+local level = require 'cc-libs.util.logging.level'
 
 ---Get a string timestamp for the current time
 ---@return string
@@ -77,51 +23,6 @@ local function traceback()
     return traceback_str, info
 end
 
----@class Handler
----@field name string handler name
----@field level number|LogLevel message level filter
-local Handler = {
-    Level = Level,
-}
-
----@param name string handler name
----@param level number|LogLevel handler log level
----@return Handler
-function Handler:new(name, level)
-    local o = {
-        name = name,
-        level = level,
-    }
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
----Abstract method, overload with derived class
----@param logger Logger the logger object
----@param message string the message rendered as a string
----@param debug_info debuginfo debug info for traceback
-function Handler:message(logger, message, debug_info) end
-
----@class ConsoleHandler
----@inherits Handler
-local ConsoleHandler = {}
-
-function ConsoleHandler:new(level)
-    setmetatable(self, {__index = Handler})
-    local o = Handler:new('Console', level)
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
--- function ConsoleHandler:message(logger, message, debug_info)
--- end
-
-local c = ConsoleHandler:new(0)
-
-c:message()
-
 ---@class Logger
 ---@field subsystem string name of the subsystem
 ---@field level number|LogLevel minimum log level for terminal logging
@@ -132,9 +33,9 @@ c:message()
 ---@field _subsystems { [string]: Logger }
 ---@field _handlers { [string]: Handler }
 local M = {
-    Level = Level,
-    level_name = level_name,
-    name_from_name = name_from_name,
+    Level = level.Level,
+    level_name = level.level_name,
+    name_from_name = level.name_from_name,
     file = nil,
     _file = nil,
     _subsystems = {},
