@@ -156,10 +156,14 @@ for file in io.popen([[ls -ap | grep -v /]]):lines() do
             else
                 print_test_trace(module, cases)
             end
-            n_test_run = n_test_run + 1
         else
-            print('failed to load test file', file)
+            if disable_color then
+                print('Failed to load test file ' .. file)
+            else
+                print('\27[33mFailed to load test file ' .. file .. '\27[0m')
+            end
         end
+        n_test_run = n_test_run + 1
         table.insert(all_test_results, {
             name = module,
             cases = cases,
