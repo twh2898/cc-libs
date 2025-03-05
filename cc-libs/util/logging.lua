@@ -64,7 +64,7 @@ local function timestamp()
 end
 
 ---Get a string with filename and line of the calling code
----@return string, table traceback name and debug info
+---@return string traceback, table info name and debug info
 local function traceback()
     local info = debug.getinfo(3, 'Slfn')
     for _, check in ipairs({ 'trace', 'debug', 'info', 'warn', 'warning', 'error', 'fatal' }) do
