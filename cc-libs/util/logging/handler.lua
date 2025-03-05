@@ -1,5 +1,3 @@
----@meta cc_logging_handler
-
 ---@class Handler
 ---@field name string handler name
 ---@field level number|LogLevel message level filter

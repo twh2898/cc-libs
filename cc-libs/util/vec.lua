@@ -1,5 +1,3 @@
----@meta ccl_vec
-
 ---@class vec2
 ---@field x number
 ---@field y number

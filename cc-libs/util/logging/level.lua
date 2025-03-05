@@ -1,5 +1,3 @@
----@meta cc_logging_level
-
 ---@enum LogLevel
 local Level = {
     DISABLED = nil,

@@ -1,6 +1,7 @@
----@meta ccl_logging
+local json = require 'cc-lib'
 
 local level = require 'cc-libs.util.logging.level'
+local Level = level.Level
 
 ---Get a string timestamp for the current time
 ---@return string
@@ -33,7 +34,7 @@ end
 ---@field _subsystems { [string]: Logger }
 ---@field _handlers { [string]: Handler }
 local M = {
-    Level = level.Level,
+    Level = Level,
     level_name = level.level_name,
     name_from_name = level.name_from_name,
     file = nil,
