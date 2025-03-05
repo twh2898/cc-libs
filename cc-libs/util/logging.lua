@@ -77,6 +77,51 @@ local function traceback()
     return traceback_str, info
 end
 
+---@class Handler
+---@field name string handler name
+---@field level number|LogLevel message level filter
+local Handler = {
+    Level = Level,
+}
+
+---@param name string handler name
+---@param level number|LogLevel handler log level
+---@return Handler
+function Handler:new(name, level)
+    local o = {
+        name = name,
+        level = level,
+    }
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+---Abstract method, overload with derived class
+---@param logger Logger the logger object
+---@param message string the message rendered as a string
+---@param debug_info debuginfo debug info for traceback
+function Handler:message(logger, message, debug_info) end
+
+---@class ConsoleHandler
+---@inherits Handler
+local ConsoleHandler = {}
+
+function ConsoleHandler:new(level)
+    setmetatable(self, {__index = Handler})
+    local o = Handler:new('Console', level)
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function ConsoleHandler:message(logger, message, debug_info)
+end
+
+local c = ConsoleHandler(0)
+
+c:message()
+
 ---@class Logger
 ---@field subsystem string name of the subsystem
 ---@field level number|LogLevel minimum log level for terminal logging
@@ -85,6 +130,7 @@ end
 ---@field file? string active log file path if _file is not nil
 ---@field _file? file*
 ---@field _subsystems { [string]: Logger }
+---@field _handlers { [string]: Handler }
 local M = {
     Level = Level,
     level_name = level_name,
@@ -92,6 +138,7 @@ local M = {
     file = nil,
     _file = nil,
     _subsystems = {},
+    _handlers = {},
 }
 
 ---Create a new logger for the given subsystem with print and file log Level
