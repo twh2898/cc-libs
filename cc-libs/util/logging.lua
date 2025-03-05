@@ -180,16 +180,8 @@ function M:log(level, ...)
                 long_msg = json.encode({
                     timestamp = timestamp(),
                     subsystem = self.subsystem,
-                    location = {
-                        source = info.source,
-                        short_src = info.short_src,
-                        linedefined = info.linedefined,
-                        name = info.name,
-                        namewhat = info.namewhat,
-                        currentline = info.currentline,
-                    },
-                    level = level,
-                    level_name = level_name(level),
+                    location = info.source .. ':' .. info.currentline,
+                    level = level_name(level),
                     msg = get_msg(),
                 })
             else
