@@ -10,7 +10,6 @@ local Level = {
 }
 
 local level_name_map = {
-    [Level.DISABLED] = 'disabled',
     [Level.TRACE] = 'trace',
     [Level.DEBUG] = 'debug',
     [Level.INFO] = 'info',

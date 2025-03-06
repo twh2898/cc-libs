@@ -7,19 +7,7 @@ local function timestamp()
     return os.date('%Y-%m-%dT%H:%M:%S')
 end
 
----Get a string with filename and line of the calling code
----@return string traceback, table info name and debug info
-local function traceback()
-    local info = debug.getinfo(3, 'Slfn')
-    for _, check in ipairs({ 'trace', 'debug', 'info', 'warn', 'warning', 'error', 'fatal' }) do
-        if info.name == check then
-            info = debug.getinfo(4, 'Slf')
-            break
-        end
-    end
-    local traceback_str = info.source .. ':' .. info.currentline
-    return traceback_str, info
-end
+---@alias Handler ConsoleHandler|FileHandler|MachineFileHandler
 
 ---@class ConsoleHandler
 ---@field level number|LogLevel message level filter
@@ -101,7 +89,8 @@ function FileHandler:message(logger, message, level, debug_info)
         .. logger.level_name(level)
         .. '] '
         .. message
-    -- TODO write to file
+    self.file:write(long_msg .. '\n')
+    self.file:flush()
 end
 
 ---@class MachineFileHandler
@@ -156,7 +145,8 @@ function MachineFileHandler:message(logger, message, level, debug_info)
         level = logger.level_name(level),
         msg = message,
     })
-    -- TODO write to file
+    self.file:write(long_msg .. '\n')
+    self.file:flush()
 end
 
 return {

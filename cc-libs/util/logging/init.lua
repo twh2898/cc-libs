@@ -1,9 +1,23 @@
-local json = require 'cc-lib'
+local json = require 'cc-libs.util.json'
 
 local level = require 'cc-libs.util.logging.level'
 local Level = level.Level
 
 local handler = require 'cc-libs.util.logging.handler'
+
+---Get a string with filename and line of the calling code
+---@return string traceback, table info name and debug info
+local function traceback()
+    local info = debug.getinfo(3, 'Slfn')
+    for _, check in ipairs({ 'trace', 'debug', 'info', 'warn', 'warning', 'error', 'fatal' }) do
+        if info.name == check then
+            info = debug.getinfo(4, 'Slf')
+            break
+        end
+    end
+    local traceback_str = info.source .. ':' .. info.currentline
+    return traceback_str, info
+end
 
 ---@class Logger
 ---@field subsystem string name of the subsystem
@@ -13,7 +27,7 @@ local handler = require 'cc-libs.util.logging.handler'
 ---@field file? string active log file path if _file is not nil
 ---@field _file? file*
 ---@field _subsystems { [string]: Logger }
----@field _handlers { [string]: Handler }
+---@field _handlers Handler[]
 local M = {
     Level = Level,
     level_name = level.level_name,
@@ -54,22 +68,8 @@ function M.get_logger(subsystem)
     return exists
 end
 
----Open a log file
----@param path string log file path
-function M.open_file(path)
-    -- Close any open file
-    if M._file ~= nil then
-        M._file:close()
-        M._file = nil
-    end
-
-    -- Open the file in append mode
-    local file, err = io.open(path, 'a')
-    if file then
-        M._file = file
-    else
-        print('Error opening log file: ' .. err)
-    end
+function M:add_handler(handler)
+    table.insert(self._handlers, handler)
 end
 
 ---Write a log message with level
@@ -93,22 +93,10 @@ function M:log(level, ...)
         return msg
     end
 
-    if (self.level ~= nil or M.level ~= nil) and level >= (self.level or M.level) then
-    end
+    local _, trace = traceback()
 
-    if M.file and (self.file_level ~= nil or M.file_level ~= nil) and level >= (self.file_level or self.level or M.file_level or M.level) then
-        if M._file == nil then
-            M.open_file(M.file)
-        end
-
-        if M._file then
-            local long_msg
-            if self.machine_log or M.machine_log then
-            else
-            end
-            M._file:write(long_msg .. '\n')
-            M._file:flush()
-        end
+    for _, handler in ipairs(self._handlers) do
+        handler:message(self, get_msg(), level, trace)
     end
 end
 
