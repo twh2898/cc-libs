@@ -21,39 +21,15 @@ local function traceback()
     return traceback_str, info
 end
 
----@class Handler
----@field name string handler name
----@field level number|LogLevel message level filter
-local Handler = {
-}
-
----@param name string handler name
----@param level number|LogLevel handler log level
----@return Handler
-function Handler:new(name, level)
-    local o = {
-        name = name,
-        level = level,
-    }
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
----Abstract method, overload with derived class
----@param logger Logger the logger object
----@param message string the message rendered as a string
----@param level number|LogLevel message level
----@param debug_info debuginfo debug info for traceback
-function Handler:message(logger, message, level, debug_info) end
-
 ---@class ConsoleHandler
----@inherits Handler
+---@field level number|LogLevel message level filter
 local ConsoleHandler = {}
 
+---@param level number|LogLevel
 function ConsoleHandler:new(level)
-    setmetatable(self, { __index = Handler })
-    local o = Handler:new('Console', level)
+    local o = {
+        level = level,
+    }
     setmetatable(o, self)
     self.__index = self
     return o
@@ -70,18 +46,40 @@ function ConsoleHandler:message(logger, message, level, debug_info)
 end
 
 ---@class FileHandler
----@inherits Handler
+---@field level number|LogLevel message level filter
 ---@field filename string path to log file
+---@field file? file* open file
 local FileHandler = {}
 
+---@param level number|LogLevel
+---@param filename string
 function FileHandler:new(level, filename)
     assert(filename ~= nil, 'FileHandler missing filename')
-    setmetatable(self, { __index = Handler })
-    local o = Handler:new('Console', level)
-    o.filename = filename
+    local o = {
+        level = level,
+        filename = filename,
+    }
     setmetatable(o, self)
     self.__index = self
     return o
+end
+
+---Open file for writing messages. If a file is open it will be closed first.
+---@param path string path to the log file
+function FileHandler:open_file(path)
+    assert(path ~= nil)
+
+    if self.file ~= nil then
+        self.file:close()
+        self.file = nil
+    end
+
+    local file, err = io.open(path)
+    if file then
+        self.file = file
+    else
+        print('Error opening log file: ' .. err)
+    end
 end
 
 ---Log to a file in human readable format
@@ -90,6 +88,9 @@ end
 ---@param level number|LogLevel message level
 ---@param debug_info debuginfo debug info for traceback
 function FileHandler:message(logger, message, level, debug_info)
+    if self.file == nil then
+        self:open_file(self.filename)
+    end
     local long_msg = '['
         .. timestamp()
         .. '] ['
@@ -103,19 +104,39 @@ function FileHandler:message(logger, message, level, debug_info)
     -- TODO write to file
 end
 
----@class MachineFileHandle
----@inherits Handler
+---@class MachineFileHandler
+---@field level number|LogLevel message level filter
 ---@field filename string path to log file
-local MachineFileHandle = {}
+---@field file? file* open file
+local MachineFileHandler = {}
 
-function MachineFileHandle:new(level, filename)
+function MachineFileHandler:new(level, filename)
     assert(filename ~= nil, 'MachineFileHandler missing filename')
-    setmetatable(self, { __index = Handler })
-    local o = Handler:new('Console', level)
-    o.filename = filename
+    local o = {
+        level = level,
+        filename = filename,
+    }
     setmetatable(o, self)
     self.__index = self
     return o
+end
+
+---Open file for writing messages. If a file is open it will be closed first.
+---@param path string path to the log file
+function MachineFileHandler:open_file(path)
+    assert(path ~= nil)
+
+    if self.file ~= nil then
+        self.file:close()
+        self.file = nil
+    end
+
+    local file, err = io.open(path)
+    if file then
+        self.file = file
+    else
+        print('Error opening log file: ' .. err)
+    end
 end
 
 ---Log to a file in machine readable format
@@ -123,7 +144,10 @@ end
 ---@param message string the message rendered as a string
 ---@param level number|LogLevel message level
 ---@param debug_info debuginfo debug info for traceback
-function MachineFileHandle:message(logger, message, level, debug_info)
+function MachineFileHandler:message(logger, message, level, debug_info)
+    if self.file == nil then
+        self:open_file(self.filename)
+    end
     local _, info = traceback()
     local long_msg = json.encode({
         timestamp = timestamp(),
@@ -136,7 +160,6 @@ function MachineFileHandle:message(logger, message, level, debug_info)
 end
 
 return {
-    Handler = Handler,
     ConsoleHandler = ConsoleHandler,
-    MachineFileHandle = MachineFileHandle,
+    MachineFileHandler = MachineFileHandler,
 }
